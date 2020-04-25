@@ -1,0 +1,232 @@
+import tkinter as tk
+
+# Квадратные уравнения
+def proverka(a, b, c, x):
+    try:
+        return round(a * x ** 2  + b * x + c) == 0
+    except TypeError:
+        result = (a * x ** 2 + b * x + c) ** 2
+        return abs(result.real) <= 10**(-10) and abs(result.imag) <= 10**(-10)
+
+
+
+def Viete_Theorem(a, b, c):
+    a, b, c = abs(a), abs(b), abs(c)
+    for i in range(-c, c+1):
+        x_1 = i
+        for j in range(-c, c+1):
+            x_2 = j
+            if x_1 + x_2 == -b / a and x_1 * x_2 == c / a:
+                if proverka(a, b, c, x_1) and proverka(a, b, c, x_2):
+                    if abs(x_1 - x_2) <= 10**(-10) :
+                        return "x1 = " + str(x_1)
+                    return "x1 = " + str(x_1) + "\nx2 = " + str(x_2)
+                else:
+                    return "Error"
+    return None
+
+
+def disk(a, b, c):
+    disk = b * b - 4 * a * c
+    x_1 = (-b - disk ** 0.5) / (2 * a)
+    x_2 = (-b + disk ** 0.5) / (2 * a)
+    if proverka(a, b, c, x_1) and proverka(a, b, c, x_2):
+        if abs(x_1 - x_2) <= 10**(-10) :
+            return "x1 = " + str(x_1)
+        return "x1 = " + str(x_1) + "\nx2 = " + str(x_2)
+    else:
+        return "Error"
+
+
+def qua_start(a, b, c):
+    if a == 1 or a == -1:
+        solution = Viete_Theorem(a, b, c)
+    if a != 1 and a != -1 or solution == None:
+        solution = disk(a, b, c)
+    return solution
+
+# Интерфейс для кв. ур-й
+def qua_eq(event):
+
+    def result_func(event):
+        a = float(c1.get())
+        b = float(c2.get())
+        c = float(c3.get())
+        res = qua_start(a, b, c)
+        result_lbl['text'] = ''.join([res])
+
+
+    root1 = tk.Tk()
+    root1.title("Квадратные уравнения")
+    root1.resizable(False, False)
+
+    greet = tk.Label(
+        root1,
+        text="Добро Пожаловать!\nРешим для вас квадратное уравнение",
+        font="Times",
+    )
+    greet.grid(row=0, columnspan=6, padx=50, pady=40)
+
+    c1 = tk.Entry(root1, width=8, justify=tk.RIGHT, font="Times")
+    c1.grid(row=1, column=0)
+    t1 = tk.Label(root1, text="x2 + ", font="Times", fg="red")
+    t1.grid(row=1, column=1)
+    c2 = tk.Entry(root1, width=8, justify=tk.RIGHT, font="Times")
+    c2.grid(row=1, column=2)
+    t1 = tk.Label(root1, text="x + ", font="Times", fg="green")
+    t1.grid(row=1, column=3)
+    c3 = tk.Entry(root1, width=8, justify=tk.RIGHT, font="Times")
+    c3.grid(row=1, column=4)
+    t1 = tk.Label(root1, text="= 0", font="Times")
+    t1.grid(row=1, column=5)
+
+    reminder = tk.Label(
+        root1,
+        text="Помощник:\n\n\
+Дискриминант:\n\
+D = b^2 - 4 * a * c\n\
+x1 = (-b + sqrt(D)) / (2 * a)\n\
+x2 = (-b - sqrt(D)) / (2 * a)\n\n\
+Теорема Виета:\n\
+x1 * x2 = c\n\
+x1 + x2 = -b",
+        font="Times", justify=tk.LEFT,
+        width=25, height=25,
+        bg="lightgrey", anchor="n"
+    )
+    reminder.grid(row = 0, column=6, rowspan=4, padx=20, pady=10)
+
+    result_btn = tk.Button(root1, text="Решить\nквадратное уравнение", font="Times",
+                        bd=2, bg="white")
+    result_btn.bind('<Button-1>', result_func)
+    result_btn.grid(row=2, columnspan=6, pady=30)
+
+    result_lbl = tk.Label(root1, text="x1 =\nx2 =\n", bd=2, anchor="nw", justify=tk.LEFT,
+                            font="Times", height=10, width=40, bg="lightgrey")
+    result_lbl.grid(row=3, columnspan=6, padx=20, pady=10)
+
+
+# СЛАУ
+def determinator(x: list, y: list, z: list):
+    det_a = float(
+        (x[0] * y[1] * z[2]) + (x[1] * y[2] * z[0]) + (x[2] * y[0] * z[1]) -
+        (x[2] * y[1] * z[0]) - (x[0] * y[2] * z[1]) - (x[1] * y[0] * z[2]))
+    return det_a
+
+
+def slau_prove(x: list, y: list, z: list, b:list, roots: list):
+    eq1 = abs(x[0] * roots[0] + y[0] * roots[1] + z[0] * roots[2] - b[0]) <= 10**(-10)
+    eq2 = abs(x[1] * roots[0] + y[1] * roots[1] + z[1] * roots[2] - b[1]) <= 10**(-10)
+    eq3 = abs(x[2] * roots[0] + y[2] * roots[1] + z[2] * roots[2] - b[2]) <= 10**(-10)
+    return (eq1 and eq2 and eq3)
+
+def cramer_method(x: list, y: list, z: list, b:list):
+    det = determinator(x, y, z)
+    if det == 0:
+        return "Система имеет бесконечное множество решений"
+    else:
+        det_1 = determinator(b, y, z)
+        det_2 = determinator(x, b, z)
+        det_3 = determinator(x, y, b)
+        x1 = det_1 / det
+        x2 = det_2 / det
+        x3 = det_3 / det
+        roots = [x1, x2, x3]
+        if slau_prove(x, y, z, b, roots):
+            return "x1 = " + str(x1) + "\nx2 = " + str(x2) + "\nx3 = " + str(x3)
+        else:
+            return "Error"
+
+
+# Интерфейс для СЛАУ
+def slau_solve(event):
+    def result_func(event):
+        x = [float(x1.get()), float(x2.get()), float(x3.get())]
+        y = [float(y1.get()), float(y2.get()), float(y3.get())]
+        z = [float(z1.get()), float(z2.get()), float(z3.get())]
+        b = [float(b1.get()), float(b2.get()), float(b3.get())]
+        res = cramer_method(x, y, z, b)
+        result_lbl['text'] = ''.join([res])
+
+    root2 = tk.Tk()
+    root2.title("СЛАУ")
+    root2.resizable(False, False)
+
+    greet = tk.Label(
+        root2,
+        text="Добро Пожаловать!\nРешим для вас СЛАУ",
+        font="Times",
+    )
+    greet.grid(row=0, columnspan=7, padx=50, pady=20)
+
+    x1 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    x1.grid(row=1, column=0, pady=10, padx=(20, 0))
+    eq_part11 = tk.Label(root2, text="x +", font="Times")
+    eq_part11.grid(row=1, column=1, pady=10, padx=10)
+    y1 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    y1.grid(row=1, column=2, pady=10)
+    eq_part12 = tk.Label(root2, text="y +", font="Times")
+    eq_part12.grid(row=1, column=3, pady=10, padx=10)
+    z1 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    z1.grid(row=1, column=4, pady=10)
+    eq_part13 = tk.Label(root2, text="z =", font="Times")
+    eq_part13.grid(row=1, column=5, pady=10, padx=10)
+    b1 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    b1.grid(row=1, column=6, pady=10, padx=(0, 20))
+
+    x2 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    x2.grid(row=2, column=0, pady=10, padx=(20, 0))
+    eq_part21 = tk.Label(root2, text="x +", font="Times")
+    eq_part21.grid(row=2, column=1, pady=10)
+    y2 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    y2.grid(row=2, column=2, pady=10)
+    eq_part22 = tk.Label(root2, text="y +", font="Times")
+    eq_part22.grid(row=2, column=3, pady=10)
+    z2 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    z2.grid(row=2, column=4, pady=10)
+    eq_part23 = tk.Label(root2, text="z =", font="Times")
+    eq_part23.grid(row=2, column=5, pady=10)
+    b2 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    b2.grid(row=2, column=6, pady=10, padx=(0, 20))
+
+    x3 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    x3.grid(row=3, column=0, pady=10, padx=(20, 0))
+    eq_part31 = tk.Label(root2, text="x +", font="Times")
+    eq_part31.grid(row=3, column=1, pady=10)
+    y3 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    y3.grid(row=3, column=2, pady=10)
+    eq_part32 = tk.Label(root2, text="y +", font="Times")
+    eq_part32.grid(row=3, column=3, pady=10)
+    z3 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    z3.grid(row=3, column=4, pady=10)
+    eq_part33 = tk.Label(root2, text="z =", font="Times")
+    eq_part33.grid(row=3, column=5, pady=10)
+    b3 = tk.Entry(root2, width=8, justify=tk.RIGHT, font="Times")
+    b3.grid(row=3, column=6, pady=10, padx=(0, 20))
+
+    result_btn = tk.Button(root2, text="Решить СЛАУ\nМетодом Крамера", font="Times",
+                        bd=2, bg="white")
+    result_btn.bind('<Button-1>', result_func)
+    result_btn.grid(row=4, columnspan=7, pady=20)
+
+    result_lbl = tk.Label(root2, text="", bd=2, anchor="n", justify=tk.LEFT,
+                            font="Times", height=10, width=40, bg="lightgrey")
+    result_lbl.grid(row=5, columnspan=7, padx=20, pady=10)
+
+
+root = tk.Tk()
+root.title("ЛР №2")
+
+intro = tk.Label(root, text="Что хотите решить?", font="Times")
+intro.grid(row=0, columnspan=2, padx=20, pady=(20, 0))
+
+qua = tk.Button(root, text="Квадратные уравнения", font="Times", bg="white")
+qua.bind("<Button-1>", qua_eq)
+qua.grid(row=1, column=0, padx=50, pady=20)
+
+slau = tk.Button(root, text="СЛАУ 3-го порядка", font="Times", bg="white")
+slau.bind("<Button-1>", slau_solve)
+slau.grid(row=1, column=1, padx=50, pady=20)
+
+root.resizable(False, False)
+root.mainloop()
